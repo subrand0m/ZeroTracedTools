@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NPC-ALL // ZeroTraced Round 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e17;
+  --surface:#0d1220;
+  --surface-hi:rgba(255,255,255,0.02);
+  --border:#1a2744;
+  --border-hi:#26365c;
+  --text:#e8f0fe;
+  --muted:#a0b4cc;
+  --dim:#6a8099;
+  --dimmer:#4a6fa5;
+  --dimmest:#2a3f66;
+  --accent:#00ff88;
+  --accent-dim:rgba(0,255,136,0.25);
+  --cyan:#00ccff;
+  --purple:#8844ff;
+  --purple-lt:#aa88ff;
+  --red:#ff5555;
+  --gold:#ffcc55;
+  --mono-data: 'JetBrains Mono', monospace;
+  --mono-disp: 'JetBrains Mono', monospace;
+  --sans: 'Inter', sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth; background:var(--bg);}
+body{
+  margin:0;
+  padding:32px;
+  background:var(--bg);
+  color:var(--muted);
+  font-family:var(--sans);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent);color:#04170c;}
+a{color:var(--accent);}
+
+.page-container{
+  max-width:1400px; margin:0 auto;
+  background:linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 100px rgba(0,255,136,0.04);
+}
+
+header{
+  position:sticky; top:0; z-index:50;
+  background:rgba(10,14,23,0.85);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+  border-radius:16px 16px 0 0;
+  overflow:hidden;
+}
+.header-inner{
+  max-width:1400px; margin:0 auto; padding:16px 24px 18px;
+}
+.topbar-accent{
+  height:3px; background:linear-gradient(90deg, var(--accent), var(--cyan), var(--purple));
+  margin:-16px -24px 18px;
+}
+.brand-row{
+  display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap;
+}
+.brand{
+  font-family:var(--mono-disp); font-weight:800; letter-spacing:1.5px;
+  font-size:19px; color:var(--text); display:flex; align-items:center; gap:10px;
+  text-transform:uppercase;
+}
+.brand .prompt{color:var(--accent);}
+.brand .cursor{
+  display:inline-block; width:9px; height:16px; background:var(--accent);
+  animation:blink 1.1s steps(1) infinite; margin-left:2px; vertical-align:-2px;
+}
+@keyframes blink{ 50%{opacity:0;} }
+.subline{color:var(--dimmer); font-size:12px; letter-spacing:0.3px; font-family:var(--mono-data); margin-top:4px;}
+.round-badge{
+  font-family:var(--mono-data); font-size:11px; font-weight:700; color:var(--accent);
+  border:1px solid var(--accent-dim); background:rgba(0,255,136,0.06);
+  padding:4px 10px; border-radius:6px; letter-spacing:1px;
+}
+
+.searchwrap{margin-top:18px;}
+.search-line{
+  display:flex; align-items:center; gap:10px;
+  background:var(--surface-hi); border:1px solid var(--border);
+  border-radius:10px; padding:11px 16px;
+  transition:border-color .15s, box-shadow .15s;
+}
+.search-line:focus-within{
+  border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,255,136,0.10);
+}
+.search-line .glyph{color:var(--accent); font-weight:700; font-size:14px; font-family:var(--mono-data);}
+.search-line input{
+  flex:1; background:transparent; border:none; outline:none;
+  color:var(--text); font-family:var(--mono-data); font-size:14.5px;
+}
+.search-line input::placeholder{color:var(--dim);}
+.search-line .clear-btn{
+  color:var(--dim); background:none; border:1px solid var(--border-hi);
+  border-radius:6px; padding:4px 10px; font-family:var(--mono-data); font-size:11px;
+  cursor:pointer; display:none; letter-spacing:0.5px;
+}
+.search-line .clear-btn:hover{color:var(--text); border-color:var(--accent);}
+
+.filter-row{
+  display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; align-items:center;
+}
+.filter-row .flabel{color:var(--dim); font-size:11px; letter-spacing:1px; margin-right:2px; font-family:var(--mono-data); text-transform:uppercase;}
+
+.chip{
+  font-family:var(--mono-data); font-size:11px; font-weight:600; letter-spacing:0.5px;
+  padding:6px 12px; border-radius:7px; border:1px solid var(--border-hi);
+  background:var(--surface-hi); color:var(--dim); cursor:pointer;
+  user-select:none; transition:all .12s;
+}
+.chip:hover{color:var(--text); border-color:var(--dim);}
+.chip.active{color:#04170c; border-color:transparent; font-weight:700;}
+
+.status-line{
+  margin-top:12px; font-size:12px; color:var(--dim); font-family:var(--mono-data);
+  display:flex; gap:14px; flex-wrap:wrap; align-items:center;
+}
+.status-line b{color:var(--text);}
+.copy-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:26px; height:22px; border-radius:5px; border:1px solid var(--border-hi);
+  background:var(--surface-hi); color:var(--dim); cursor:pointer; flex-shrink:0;
+  transition:all .12s;
+}
+.copy-btn:hover{color:var(--accent); border-color:var(--accent); background:rgba(0,255,136,0.06);}
+.copy-btn svg{width:13px; height:13px;}
+.copy-btn.copied{color:var(--accent); border-color:var(--accent); background:rgba(0,255,136,0.10);}
+
+main{max-width:1400px; margin:0 auto; padding:26px 24px;}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(330px, 1fr));
+  gap:18px;
+}
+.empty-state{
+  text-align:center; padding:80px 20px; color:var(--dim);
+  font-size:14px; display:none; font-family:var(--mono-data);
+}
+.empty-state .big{font-size:28px; color:var(--dimmest); margin-bottom:10px;}
+
+.card{
+  background:linear-gradient(180deg, var(--surface-hi), transparent), var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px; overflow:hidden;
+  display:flex; flex-direction:column;
+  position:relative;
+  transition:border-color .15s ease, transform .15s ease;
+}
+.card::before{
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:var(--card-accent, var(--accent));
+}
+.card:hover{border-color:var(--border-hi); transform:translateY(-2px);}
+
+.card-head{
+  padding:14px 16px 11px; border-bottom:1px solid var(--border);
+  display:flex; align-items:flex-start; justify-content:space-between; gap:8px;
+}
+.card-head-l{min-width:0;}
+.cat-badge{
+  display:inline-block; font-size:10px; font-weight:700; letter-spacing:1.5px;
+  padding:3px 8px; border-radius:5px; margin-bottom:7px;
+  border:1px solid currentColor; font-family:var(--mono-data);
+  text-transform:uppercase;
+}
+.npc-name{
+  font-family:var(--mono-disp); font-weight:700; font-size:14.5px;
+  color:var(--text); line-height:1.3; word-break:break-word; letter-spacing:0.2px;
+}
+.ip-pill{
+  font-family:var(--mono-data); font-size:11.5px; color:var(--accent);
+  background:rgba(0,255,136,0.06); border:1px solid var(--accent-dim);
+  padding:4px 9px; border-radius:6px; white-space:nowrap; cursor:pointer;
+  flex-shrink:0;
+}
+.ip-pill:hover{background:rgba(0,255,136,0.14);}
+.status-badge{
+  font-family:var(--mono-data); font-size:9.5px; font-weight:700; letter-spacing:1px;
+  margin-top:6px; text-align:right; text-transform:uppercase;
+}
+.status-badge.on{color:var(--accent);}
+.status-badge.off{color:var(--dimmest);}
+
+.soft-grid{
+  display:grid; grid-template-columns:repeat(auto-fill, 72px);
+  grid-auto-rows:54px;
+  justify-content:space-between; align-items:start;
+  gap:6px; padding:12px 14px; flex:1;
+}
+.soft-box{
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:10px; padding:5px 3px; text-align:center;
+  height:54px; box-sizing:border-box; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  transition:all .12s;
+}
+.soft-box .code{
+  font-size:9px; font-weight:700; letter-spacing:.04em;
+  font-family:var(--mono-data); white-space:nowrap;
+}
+.soft-box .ver{font-size:11px; color:var(--text); font-weight:700; margin-top:3px; font-family:var(--mono-data); white-space:nowrap;}
+.soft-box .sz{font-size:9px; color:var(--muted); margin-top:1px; font-family:var(--mono-data); white-space:nowrap;}
+.soft-box.match{
+  box-shadow:0 0 0 1px var(--accent), 0 0 12px rgba(0,255,136,0.20);
+  border-color:var(--accent);
+}
+.no-soft{
+  grid-column:1/-1; color:var(--dimmest); font-size:11px; text-align:center; padding:14px 0;
+  font-family:var(--mono-data);
+}
+
+footer{
+  max-width:1400px; margin:0 auto; padding:34px 24px 40px;
+  color:var(--dimmest); font-size:11px; letter-spacing:.5px; text-align:center;
+  font-family:var(--mono-data); border-top:1px solid var(--border);
+  border-radius:0 0 16px 16px;
+}
+footer .p{color:var(--accent);}
+
+@media (max-width:520px){
+  .grid{grid-template-columns:1fr;}
+  .brand{font-size:16px;}
+}
+@media (max-width:900px){
+  body{padding:14px;}
+  .page-container{border-radius:12px;}
+  header{border-radius:12px 12px 0 0;}
+  footer{border-radius:0 0 12px 12px;}
+}
+</style>
+</head>
+<body>
+
+<div class="page-container">
+<header>
+  <div class="header-inner">
+    <div class="topbar-accent"></div>
+    <div class="brand-row">
+      <div class="brand"><span class="prompt">&gt;_</span> NPC-ALL <span class="cursor"></span></div>
+      <div class="round-badge">ZT ROUND 1</div>
+    </div>
+    <div class="subline">// live index &middot; every target, IP, and software loadout gathered from ZeroTraced</div>
+
+    <div class="searchwrap">
+      <div class="search-line">
+        <span class="glyph">$</span>
+        <input id="search" type="text" placeholder="grep -i vwarez, or a name, IP, tool, category..." autocomplete="off" spellcheck="false">
+        <button class="clear-btn" id="clearBtn">clear</button>
+      </div>
+      <div class="filter-row" id="catFilters">
+        <span class="flabel">type:</span>
+      </div>
+      <div class="filter-row" id="softFilters">
+        <span class="flabel">has software:</span>
+      </div>
+      <div class="status-line">
+        <span><b id="hitCount">0</b> / <span id="totalCount">0</span> targets matching</span>
+        <button class="copy-btn" id="copyIpsBtn" title="copy visible IP addresses">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="14" width="16" height="6" rx="1.5"></rect>
+            <path d="M12 3v9"></path>
+            <path d="M8 8l4 4 4-4"></path>
+          </svg>
+        </button>
+        <button class="copy-btn" id="downloadListBtn" title="download visible IPs as a .md list">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+            <path d="M14 3v6h6"></path>
+            <path d="M12 12v6"></path>
+            <path d="M9.5 15.5 12 18l2.5-2.5"></path>
+          </svg>
+        </button>
+        <span id="softHint"></span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="empty-state" id="emptyState">
+    <div class="big">&macr;\_(&#12484;)_/&macr;</div>
+    no targets match that query &mdash; try a tool code like <code>vwarez</code>, <code>vminer</code>, or a name/IP fragment
+  </div>
+</main>
+
+<footer>
+  <span class="p">&gt;_</span> ZT-NPC-Round-1 &middot; built from a single gather pass &middot; no stats beyond what was scraped
+</footer>
+</div>
+
+<script>
+const RECORDS = [{"cat":"WHOIS","ip":"1.2.3.4","name":"First Whois","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Nmap","ext":"NMAP","version":1.1,"size":18.0},{"name":"Decent Anti-Virus","ext":"AV","version":2.0,"size":48.0},{"name":"Decent Cracker","ext":"CRC","version":2.1,"size":83.0},{"name":"Decent Firewall","ext":"FWL","version":2.0,"size":63.0},{"name":"Decent Hasher","ext":"HASH","version":2.0,"size":69.0},{"name":"Decent Hidder","ext":"HDR","version":2.0,"size":45.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Spam","ext":"VSPAM","version":2.0,"size":36.0},{"name":"Decent SSH Exploit","ext":"SSHEXP","version":2.0,"size":57.0},{"name":"Decent Warez","ext":"VWAREZ","version":2.0,"size":36.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic FTP Exploit","ext":"FTPEXP","version":1.8,"size":47.0},{"name":"Generic Seeker","ext":"SKR","version":1.9,"size":41.0},{"name":"Winblows 8.1","ext":"TORRENT","version":2.0,"size":63.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"HIRER","ip":"100.214.139.210","name":"Yahoo?","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"COMPANY","ip":"104.162.20.51","name":"Digital Street Vendor","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Port Scan","ext":"SCAN","version":1.0,"size":23.0},{"name":"Basic Warez","ext":"VWAREZ","version":1.0,"size":14.0},{"name":"F.L.I.E.N.D.S","ext":"TORRENT","version":1.0,"size":23.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Firewall","ext":"FWL","version":1.5,"size":39.0},{"name":"Generic Hasher","ext":"HASH","version":1.5,"size":42.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0}]},{"cat":"HIRER","ip":"106.243.140.35","name":"Oh Deere","status":"ONLINE","soft":[]},{"cat":"RIDDLE","ip":"109.44.174.142","name":"PUZZLE2","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Firewall","ext":"FWL","version":2.8,"size":123.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.3,"size":75.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Seeker","ext":"SKR","version":2.7,"size":82.0},{"name":"Decent Warez","ext":"VWAREZ","version":2.0,"size":36.0},{"name":"Generic SSH Exploit","ext":"SSHEXP","version":1.9,"size":52.0},{"name":"Intermediate Breaker","ext":"VBRK","version":3.0,"size":95.0},{"name":"Intermediate Cracker","ext":"CRC","version":3.6,"size":246.0},{"name":"Intermediate DDoS","ext":"VDDOS","version":3.0,"size":88.0},{"name":"Intermediate Hasher","ext":"HASH","version":3.4,"size":201.0},{"name":"Intermediate Hidder","ext":"HDR","version":3.3,"size":123.0},{"name":"vspam","ext":"VSPAM","version":5.2,"size":246.0}]},{"cat":"HIRER","ip":"112.235.167.227","name":"Capitalism","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Decent Cracker","ext":"CRC","version":2.5,"size":116.0},{"name":"Decent Firewall","ext":"FWL","version":2.2,"size":76.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.5,"size":89.0},{"name":"Decent Hasher","ext":"HASH","version":2.7,"size":125.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Warez","ext":"VWAREZ","version":2.0,"size":36.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.6,"size":360.0}]},{"cat":"HIRER","ip":"113.11.211.156","name":"Very Cheesy Pictures","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Basic Port Scan","ext":"SCAN","version":1.0,"size":23.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.5,"size":89.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Spam","ext":"VSPAM","version":2.0,"size":36.0},{"name":"Decent Spam","ext":"VSPAM","version":2.0,"size":36.0},{"name":"Generic Cracker","ext":"CRC","version":1.7,"size":56.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic Firewall","ext":"FWL","version":1.7,"size":47.0},{"name":"Generic Hasher","ext":"HASH","version":1.9,"size":63.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"HIRER","ip":"114.48.242.160","name":"Samsong Electronics","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Firewall","ext":"FWL","version":2.9,"size":132.0},{"name":"Decent Spam","ext":"VSPAM","version":2.3,"size":48.0},{"name":"Fotoshop CS6","ext":"TORRENT","version":3.0,"size":142.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0},{"name":"Intermediate Cracker","ext":"CRC","version":3.2,"size":193.0},{"name":"Intermediate Hasher","ext":"HASH","version":3.2,"size":177.0}]},{"cat":"HIRER","ip":"116.197.137.9","name":"Netflopp","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Cracker","ext":"CRC","version":1.3,"size":37.0},{"name":"Basic Firewall","ext":"FWL","version":1.3,"size":31.0},{"name":"Basic Hasher","ext":"HASH","version":1.3,"size":34.0},{"name":"Basic Warez","ext":"VWAREZ","version":1.2,"size":16.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0}]},{"cat":"RIDDLE","ip":"117.149.139.147","name":"7","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.6,"size":288.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic FTP Exploit","ext":"FTPEXP","version":1.3,"size":28.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.2,"size":26.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic Anti-Virus","ext":"AV","version":1.5,"size":30.0},{"name":"Generic Cracker","ext":"CRC","version":1.7,"size":56.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic Firewall","ext":"FWL","version":1.6,"size":43.0},{"name":"Generic Hasher","ext":"HASH","version":1.6,"size":47.0},{"name":"Generic Miner","ext":"VMINER","version":1.6,"size":43.0},{"name":"Generic Warez","ext":"VWAREZ","version":1.5,"size":22.0}]},{"cat":"HIRER","ip":"117.161.106.74","name":"Nuke","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.6,"size":288.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0}]},{"cat":"BANK","ip":"117.162.226.163","name":"Swiss International Bank","status":"ONLINE","soft":[]},{"cat":"COMPANY","ip":"119.239.73.65","name":"Double Stamp Notary","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hidder","ext":"HDR","version":1.4,"size":25.0},{"name":"Basic Seeker","ext":"SKR","version":1.4,"size":25.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Firewall","ext":"FWL","version":1.7,"size":47.0},{"name":"Generic Hasher","ext":"HASH","version":1.9,"size":63.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0}]},{"cat":"TORRENT MARKET","ip":"121.207.247.51","name":"Torrent Market","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Basic Nmap","ext":"NMAP","version":1.1,"size":18.0},{"name":"Decent Firewall","ext":"FWL","version":2.5,"size":98.0},{"name":"Decent Hasher","ext":"HASH","version":2.5,"size":107.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Spam","ext":"VSPAM","version":2.0,"size":36.0},{"name":"F.L.I.E.N.D.S","ext":"TORRENT","version":1.0,"size":23.0},{"name":"Fotoshop CS6","ext":"TORRENT","version":3.0,"size":142.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Winblows 8.1","ext":"TORRENT","version":2.0,"size":63.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"RIDDLE","ip":"123.233.152.181","name":"PUZZLE2","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Competent Cracker","ext":"CRC","version":4.4,"size":375.0},{"name":"Competent Hasher","ext":"HASH","version":4.2,"size":313.0},{"name":"Competent Miner","ext":"VMINER","version":4.0,"size":258.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent SSH Exploit","ext":"SSHEXP","version":2.4,"size":82.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0},{"name":"Intermediate Firewall","ext":"FWL","version":3.2,"size":162.0},{"name":"Intermediate FTP Exploit","ext":"FTPEXP","version":3.6,"size":187.0},{"name":"Intermediate Hidder","ext":"HDR","version":3.7,"size":157.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0},{"name":"Intermediate Seeker","ext":"SKR","version":3.4,"size":131.0}]},{"cat":"HIRER","ip":"124.239.219.62","name":"Scapegoat Insurance","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Competent Hasher","ext":"HASH","version":4.0,"size":283.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Intermediate Cracker","ext":"CRC","version":3.9,"size":291.0},{"name":"Intermediate Firewall","ext":"FWL","version":3.5,"size":195.0},{"name":"Intermediate SSH Exploit","ext":"SSHEXP","version":3.1,"size":137.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"COMPANY","ip":"125.168.79.147","name":"h4x0r Dive Bar","status":"ONLINE","soft":[{"name":"Basic Firewall","ext":"FWL","version":1.2,"size":28.0},{"name":"Basic Hasher","ext":"HASH","version":1.4,"size":38.0},{"name":"Basic Spam","ext":"VSPAM","version":1.3,"size":18.0},{"name":"Basic Warez","ext":"VWAREZ","version":1.1,"size":15.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0}]},{"cat":"HIRER","ip":"129.117.203.47","name":"Nothing to do","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.7,"size":374.0}]},{"cat":"BITCOIN MARKET","ip":"131.175.155.32","name":"Bitcoin Market","status":"ONLINE","soft":[{"name":"Advanced Firewall","ext":"FWL","version":5.0,"size":413.0},{"name":"Advanced Hasher","ext":"HASH","version":5.0,"size":452.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.8,"size":311.0},{"name":"Advanced Warez","ext":"VWAREZ","version":5.6,"size":288.0},{"name":"Fotoshop CS6","ext":"TORRENT","version":3.0,"size":142.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Super Miner","ext":"VMINER","version":10.0,"size":1740.8}]},{"cat":"RIDDLE","ip":"132.56.253.81","name":"PUZZLE1","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Competent Cracker","ext":"CRC","version":4.6,"size":412.0},{"name":"Competent Hasher","ext":"HASH","version":4.4,"size":345.0},{"name":"Competent Hidder","ext":"HDR","version":4.0,"size":185.0},{"name":"Competent Spam","ext":"VSPAM","version":4.5,"size":189.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Intermediate Firewall","ext":"FWL","version":3.4,"size":184.0},{"name":"Intermediate FTP Exploit","ext":"FTPEXP","version":3.4,"size":166.0},{"name":"Intermediate Seeker","ext":"SKR","version":3.7,"size":157.0},{"name":"Intermediate SSH Exploit","ext":"SSHEXP","version":3.0,"size":128.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"RIDDLE","ip":"133.185.212.13","name":"PUZZLE2","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Advanced Warez","ext":"VWAREZ","version":5.0,"size":236.0},{"name":"Decent Firewall","ext":"FWL","version":2.6,"size":106.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Warez","ext":"VWAREZ","version":2.0,"size":36.0},{"name":"Intermediate Anti-Virus","ext":"AV","version":3.4,"size":140.0},{"name":"Intermediate Cracker","ext":"CRC","version":3.2,"size":193.0},{"name":"Intermediate FTP Exploit","ext":"FTPEXP","version":3.0,"size":128.0},{"name":"Intermediate Hasher","ext":"HASH","version":3.0,"size":155.0},{"name":"Intermediate Hidder","ext":"HDR","version":3.7,"size":157.0},{"name":"Intermediate SSH Exploit","ext":"SSHEXP","version":3.0,"size":128.0}]},{"cat":"HIRER","ip":"134.61.57.72","name":"Sexsi","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"HIRER","ip":"135.57.246.157","name":"uPay","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Basic Spam","ext":"VSPAM","version":1.1,"size":14.0},{"name":"Decent Cracker","ext":"CRC","version":2.7,"size":136.0},{"name":"Decent Hasher","ext":"HASH","version":2.0,"size":69.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Firewall","ext":"FWL","version":1.7,"size":47.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0}]},{"cat":"HIRER","ip":"136.221.214.117","name":"Oops","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.7,"size":374.0}]},{"cat":"RIDDLE","ip":"138.129.5.63","name":"PUZZLE2","status":"ONLINE","soft":[{"name":"Advanced Anti-Virus","ext":"AV","version":5.0,"size":315.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Competent Cracker","ext":"CRC","version":4.8,"size":451.0},{"name":"Competent Hasher","ext":"HASH","version":4.6,"size":379.0},{"name":"Competent Hidder","ext":"HDR","version":4.6,"size":248.0},{"name":"Competent Seeker","ext":"SKR","version":4.0,"size":185.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent SSH Exploit","ext":"SSHEXP","version":2.0,"size":57.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Intermediate Firewall","ext":"FWL","version":3.4,"size":184.0},{"name":"Intermediate FTP Exploit","ext":"FTPEXP","version":3.6,"size":187.0},{"name":"nmap","ext":"NMAP","version":1.5,"size":27.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"BANK","ip":"14.207.241.144","name":"HEBC","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.6,"size":288.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Decent Firewall","ext":"FWL","version":2.5,"size":98.0},{"name":"Decent Hasher","ext":"HASH","version":2.5,"size":107.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Spam","ext":"VSPAM","version":2.0,"size":36.0},{"name":"Decent Warez","ext":"VWAREZ","version":2.0,"size":36.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0}]},{"cat":"DOWNLOAD CENTER","ip":"140.113.15.44","name":"Download Center","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Collector","ext":"VCOL","version":1.0,"size":16.0},{"name":"Basic Cracker","ext":"CRC","version":1.0,"size":28.0},{"name":"Basic Firewall","ext":"FWL","version":1.0,"size":23.0},{"name":"Basic FTP Exploit","ext":"FTPEXP","version":1.0,"size":21.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Basic Hidder","ext":"HDR","version":1.0,"size":17.0},{"name":"Basic Port Scan","ext":"SCAN","version":1.0,"size":23.0},{"name":"Basic Seeker","ext":"SKR","version":1.0,"size":17.0},{"name":"Basic Spam","ext":"VSPAM","version":1.0,"size":14.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.0,"size":21.0},{"name":"Coco Jamboo Zero-Day","ext":"VMINER","version":10.2,"size":1331.2},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Zero-Day 3000","ext":"VMINER","version":10.9,"size":1331.2}]},{"cat":"HIRER","ip":"141.76.56.92","name":"Sunk Microsystems","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.7,"size":374.0}]},{"cat":"RIDDLE","ip":"149.235.208.131","name":"First Puzzle","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Cracker","ext":"CRC","version":1.1,"size":30.0},{"name":"Basic Firewall","ext":"FWL","version":1.0,"size":23.0},{"name":"Basic FTP Exploit","ext":"FTPEXP","version":1.0,"size":21.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Basic Hidder","ext":"HDR","version":1.0,"size":17.0},{"name":"Basic Spam","ext":"VSPAM","version":1.0,"size":14.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Spam","ext":"VSPAM","version":2.0,"size":36.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"heartbleed","ext":"VSPAM","version":1.0,"size":4.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"RIDDLE","ip":"151.157.64.195","name":"PUZZLE1","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Competent Cracker","ext":"CRC","version":4.2,"size":340.0},{"name":"Competent Hasher","ext":"HASH","version":4.0,"size":283.0},{"name":"Competent Warez","ext":"VWAREZ","version":4.0,"size":148.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.9,"size":120.0},{"name":"Decent Hidder","ext":"HDR","version":2.8,"size":88.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent SSH Exploit","ext":"SSHEXP","version":2.2,"size":69.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Intermediate Firewall","ext":"FWL","version":3.2,"size":162.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0},{"name":"Intermediate Seeker","ext":"SKR","version":3.3,"size":123.0}]},{"cat":"BANK","ip":"153.196.204.114","name":"Mattress Bank","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Firewall","ext":"FWL","version":1.6,"size":43.0},{"name":"Generic Hasher","ext":"HASH","version":1.6,"size":47.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.6,"size":360.0}]},{"cat":"WHOIS","ip":"154.250.169.121","name":"Second Whois","status":"ONLINE","soft":[]},{"cat":"RIDDLE","ip":"156.25.39.179","name":"PUZZLE1","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Firewall","ext":"FWL","version":2.8,"size":123.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.8,"size":111.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Seeker","ext":"SKR","version":2.8,"size":88.0},{"name":"Decent SSH Exploit","ext":"SSHEXP","version":2.4,"size":82.0},{"name":"Intermediate Anti-Virus","ext":"AV","version":3.4,"size":140.0},{"name":"Intermediate Cracker","ext":"CRC","version":3.4,"size":219.0},{"name":"Intermediate Hasher","ext":"HASH","version":3.2,"size":177.0},{"name":"Intermediate Hidder","ext":"HDR","version":3.0,"size":101.0},{"name":"Intermediate Spam","ext":"VSPAM","version":3.5,"size":112.0}]},{"cat":"RIDDLE","ip":"156.43.91.2","name":"PUZZLE2","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Anti-Virus","ext":"AV","version":2.5,"size":75.0},{"name":"Decent Cracker","ext":"CRC","version":2.3,"size":99.0},{"name":"Decent Firewall","ext":"FWL","version":2.0,"size":63.0},{"name":"Decent Hasher","ext":"HASH","version":2.2,"size":83.0},{"name":"Decent Hidder","ext":"HDR","version":2.5,"size":70.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent SSH Exploit","ext":"SSHEXP","version":2.4,"size":82.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Intermediate Anti-Virus","ext":"AV","version":3.4,"size":140.0},{"name":"vspam","ext":"VSPAM","version":5.2,"size":246.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.7,"size":374.0}]},{"cat":"COMPANY","ip":"159.237.126.131","name":"CoinBaixa Exchange","status":"ONLINE","soft":[]},{"cat":"HIRER","ip":"16.137.240.119","name":"Maybe Ride","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Advanced Warez","ext":"VWAREZ","version":5.6,"size":288.0},{"name":"Basic Port Scan","ext":"SCAN","version":1.0,"size":23.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.2,"size":26.0},{"name":"Fotoshop CS6","ext":"TORRENT","version":3.0,"size":142.0},{"name":"Generic Cracker","ext":"CRC","version":1.6,"size":51.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic Firewall","ext":"FWL","version":1.5,"size":39.0},{"name":"Generic Hasher","ext":"HASH","version":1.8,"size":57.0}]},{"cat":"HIRER","ip":"16.41.160.164","name":"CatVideos","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Nmap","ext":"NMAP","version":1.1,"size":18.0},{"name":"Competent Cracker","ext":"CRC","version":4.0,"size":307.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.8,"size":111.0},{"name":"Decent Seeker","ext":"SKR","version":2.7,"size":82.0},{"name":"Decent Spam","ext":"VSPAM","version":2.4,"size":52.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Intermediate Firewall","ext":"FWL","version":3.7,"size":219.0},{"name":"Intermediate Hasher","ext":"HASH","version":3.0,"size":155.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0},{"name":"Intermediate SSH Exploit","ext":"SSHEXP","version":3.3,"size":156.0}]},{"cat":"HIRER","ip":"161.183.26.241","name":"Blackrocha Asset Management","status":"ONLINE","soft":[]},{"cat":"HIRER","ip":"161.51.85.124","name":"Toshibe","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.7,"size":374.0}]},{"cat":"RIDDLE","ip":"163.75.108.92","name":"PUZZLE1","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Firewall","ext":"FWL","version":2.6,"size":106.0},{"name":"Decent Hasher","ext":"HASH","version":2.9,"size":145.0},{"name":"Decent Hidder","ext":"HDR","version":2.9,"size":95.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent SSH Exploit","ext":"SSHEXP","version":2.0,"size":57.0},{"name":"Generic FTP Exploit","ext":"FTPEXP","version":1.6,"size":39.0},{"name":"Intermediate Cracker","ext":"CRC","version":3.0,"size":169.0},{"name":"Intermediate Seeker","ext":"SKR","version":3.6,"size":148.0},{"name":"Intermediate Warez","ext":"VWAREZ","version":3.3,"size":99.0},{"name":"vspam","ext":"VSPAM","version":5.2,"size":246.0}]},{"cat":"HIRER","ip":"163.99.127.176","name":"Abersnobby & Snitch","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"GetMining","ext":"VMINER","version":2.1,"size":45.0}]},{"cat":"BANK","ip":"166.177.195.217","name":"Caiman Islands Offshore","status":"ONLINE","soft":[]},{"cat":"HIRER","ip":"17.156.180.226","name":"SafeNot Security","status":"ONLINE","soft":[]},{"cat":"HIRER","ip":"171.217.131.228","name":"PayFail","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Anti-Virus","ext":"AV","version":1.3,"size":24.0},{"name":"Decent Cracker","ext":"CRC","version":2.3,"size":99.0},{"name":"Decent Firewall","ext":"FWL","version":2.0,"size":63.0},{"name":"Decent Hasher","ext":"HASH","version":2.5,"size":107.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic FTP Exploit","ext":"FTPEXP","version":1.6,"size":39.0},{"name":"Generic Warez","ext":"VWAREZ","version":1.5,"size":22.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"HIRER","ip":"172.223.60.190","name":"Elvi's","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Advanced Warez","ext":"VWAREZ","version":5.0,"size":236.0},{"name":"Basic Cracker","ext":"CRC","version":1.4,"size":41.0},{"name":"Basic FTP Exploit","ext":"FTPEXP","version":1.2,"size":26.0},{"name":"Basic Hasher","ext":"HASH","version":1.3,"size":34.0},{"name":"Basic Hidder","ext":"HDR","version":1.1,"size":18.0},{"name":"Basic Port Scan","ext":"SCAN","version":1.0,"size":23.0},{"name":"Basic Seeker","ext":"SKR","version":1.2,"size":20.0},{"name":"Basic Spam","ext":"VSPAM","version":1.2,"size":16.0},{"name":"Basic Warez","ext":"VWAREZ","version":1.3,"size":18.0},{"name":"Fotoshop CS6","ext":"TORRENT","version":3.0,"size":142.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Firewall","ext":"FWL","version":1.7,"size":47.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0}]},{"cat":"RIDDLE","ip":"174.191.139.166","name":"PUZZLE1","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Advanced Warez","ext":"VWAREZ","version":5.0,"size":236.0},{"name":"Competent Anti-Virus","ext":"AV","version":4.0,"size":197.0},{"name":"Competent Hidder","ext":"HDR","version":4.0,"size":185.0},{"name":"Competent Seeker","ext":"SKR","version":4.0,"size":185.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.2,"size":69.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent SSH Exploit","ext":"SSHEXP","version":2.1,"size":63.0},{"name":"Intermediate Cracker","ext":"CRC","version":3.8,"size":276.0},{"name":"Intermediate Firewall","ext":"FWL","version":3.0,"size":142.0},{"name":"Intermediate Hasher","ext":"HASH","version":3.6,"size":227.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0}]},{"cat":"RIDDLE","ip":"174.23.23.96","name":"Lorem Ipsum","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic DDoS","ext":"VDDOS","version":1.0,"size":15.0},{"name":"Basic Hidder","ext":"HDR","version":1.0,"size":17.0},{"name":"Decent Collector","ext":"VCOL","version":2.5,"size":65.0},{"name":"Decent Cracker","ext":"CRC","version":2.7,"size":136.0},{"name":"Decent Firewall","ext":"FWL","version":2.4,"size":90.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.3,"size":75.0},{"name":"Decent Hasher","ext":"HASH","version":2.5,"size":107.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic Seeker","ext":"SKR","version":1.5,"size":28.0},{"name":"GetMining","ext":"VMINER","version":2.1,"size":45.0},{"name":"Intermediate Anti-Virus","ext":"AV","version":3.4,"size":140.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0}]},{"cat":"COMPANY","ip":"174.57.39.139","name":"Snowfield Mirror","status":"ONLINE","soft":[]},{"cat":"HIRER","ip":"174.74.146.9","name":"Gimme Your Bucks","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Anti-Virus","ext":"AV","version":2.3,"size":63.0},{"name":"Decent Firewall","ext":"FWL","version":2.5,"size":98.0},{"name":"Decent Hidder","ext":"HDR","version":2.2,"size":54.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic Cracker","ext":"CRC","version":1.8,"size":62.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic Hasher","ext":"HASH","version":1.7,"size":52.0},{"name":"Generic Spam","ext":"VSPAM","version":1.5,"size":22.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"HIRER","ip":"176.212.108.4","name":"Pineapple","status":"UNKNOWN","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.6,"size":288.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Cracker","ext":"CRC","version":1.4,"size":41.0},{"name":"Basic FTP Exploit","ext":"FTPEXP","version":1.2,"size":26.0},{"name":"Basic Hasher","ext":"HASH","version":1.3,"size":34.0},{"name":"Basic Hidder","ext":"HDR","version":1.1,"size":18.0},{"name":"Basic Port Scan","ext":"SCAN","version":1.0,"size":23.0},{"name":"Basic Seeker","ext":"SKR","version":1.2,"size":20.0},{"name":"Basic Spam","ext":"VSPAM","version":1.2,"size":16.0},{"name":"Basic Warez","ext":"VWAREZ","version":1.3,"size":18.0},{"name":"Competent Miner","ext":"VMINER","version":4.0,"size":258.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic Firewall","ext":"FWL","version":1.7,"size":47.0}]},{"cat":"HIRER","ip":"177.5.255.147","name":"Weird","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0}]},{"cat":"TEMPORARY TARGET","ip":"178.87.202.157","name":"Dep\u00f3sito Noturno","status":"ONLINE","soft":[{"name":"Firewall","ext":"FWL","version":1.0,"size":23.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0},{"name":"Hasher","ext":"HASH","version":2.0,"size":69.0}]},{"cat":"COMPANY","ip":"181.16.11.182","name":"Copy-Paste Federal University","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Decent Firewall","ext":"FWL","version":2.2,"size":76.0},{"name":"Decent Hasher","ext":"HASH","version":2.4,"size":99.0},{"name":"Fotoshop CS6","ext":"TORRENT","version":3.0,"size":142.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0}]},{"cat":"HIRER","ip":"183.184.65.87","name":"Panopticon Data Broker","status":"ONLINE","soft":[]},{"cat":"TEMPORARY TARGET","ip":"188.35.120.216","name":"Dep\u00f3sito Noturno","status":"ONLINE","soft":[{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Firewall","ext":"FWL","version":1.0,"size":23.0},{"name":"Hasher","ext":"HASH","version":2.0,"size":69.0}]},{"cat":"COMPANY","ip":"191.133.140.187","name":"The Reheated Headline Daily","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Firewall","ext":"FWL","version":2.4,"size":90.0},{"name":"Decent Hasher","ext":"HASH","version":2.6,"size":116.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"HIRER","ip":"200.78.9.94","name":"PayMore Drugstore","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Anti-Virus","ext":"AV","version":1.4,"size":27.0},{"name":"Decent Cracker","ext":"CRC","version":2.1,"size":83.0},{"name":"Decent Hasher","ext":"HASH","version":2.2,"size":83.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic Firewall","ext":"FWL","version":1.9,"size":58.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"RIDDLE","ip":"202.182.118.253","name":"PUZZLE2","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Cracker","ext":"CRC","version":2.5,"size":116.0},{"name":"Decent Firewall","ext":"FWL","version":2.2,"size":76.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.2,"size":69.0},{"name":"Decent Hasher","ext":"HASH","version":2.4,"size":99.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Seeker","ext":"SKR","version":2.6,"size":76.0},{"name":"Decent Warez","ext":"VWAREZ","version":2.5,"size":56.0},{"name":"Generic Hidder","ext":"HDR","version":1.9,"size":41.0},{"name":"Generic SSH Exploit","ext":"SSHEXP","version":1.7,"size":43.0},{"name":"Intermediate Anti-Virus","ext":"AV","version":3.4,"size":140.0},{"name":"vspam","ext":"VSPAM","version":5.2,"size":246.0}]},{"cat":"COMPANY","ip":"203.245.68.72","name":"No Signal Telecom","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Competent Firewall","ext":"FWL","version":4.0,"size":258.0},{"name":"Competent Hasher","ext":"HASH","version":4.0,"size":283.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0}]},{"cat":"HIRER","ip":"211.190.32.227","name":"Fiasco Systems","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.6,"size":288.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Decent Cracker","ext":"CRC","version":2.6,"size":126.0},{"name":"Decent Firewall","ext":"FWL","version":2.0,"size":63.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic Cracker","ext":"CRC","version":1.7,"size":56.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic Hasher","ext":"HASH","version":1.9,"size":63.0},{"name":"underminer","ext":"VMINER","version":10.1,"size":1331.2}]},{"cat":"HIRER","ip":"211.197.79.246","name":"Peeping Tom Analytics","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.1,"size":295.0}]},{"cat":"HIRER","ip":"211.232.124.64","name":"Titanic","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Competent Cracker","ext":"CRC","version":4.4,"size":375.0},{"name":"Competent FTP Exploit","ext":"FTPEXP","version":4.0,"size":234.0},{"name":"Decent Firewall","ext":"FWL","version":2.8,"size":123.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Spam","ext":"VSPAM","version":1.9,"size":33.0},{"name":"Intermediate Hasher","ext":"HASH","version":3.8,"size":254.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0},{"name":"Intermediate SSH Exploit","ext":"SSHEXP","version":3.3,"size":156.0}]},{"cat":"HIRER","ip":"213.178.171.230","name":"WTF","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Firewall","ext":"FWL","version":1.3,"size":31.0},{"name":"Basic Port Scan","ext":"SCAN","version":1.0,"size":23.0},{"name":"Basic Spam","ext":"VSPAM","version":1.4,"size":20.0},{"name":"Basic Spam","ext":"VSPAM","version":1.1,"size":14.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.4,"size":32.0},{"name":"Decent Cracker","ext":"CRC","version":2.2,"size":90.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Firewall","ext":"FWL","version":1.9,"size":58.0},{"name":"Generic Firewall","ext":"FWL","version":1.7,"size":47.0},{"name":"Generic Hasher","ext":"HASH","version":1.6,"size":47.0},{"name":"Generic Hidder","ext":"HDR","version":1.8,"size":38.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0}]},{"cat":"RIDDLE","ip":"216.123.104.32","name":"PUZZLE2","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Advanced Warez","ext":"VWAREZ","version":5.6,"size":288.0},{"name":"Basic Spam","ext":"VSPAM","version":1.4,"size":20.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.2,"size":26.0},{"name":"Decent Cracker","ext":"CRC","version":2.0,"size":75.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.0,"size":57.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Fotoshop CS6","ext":"TORRENT","version":3.0,"size":142.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic Firewall","ext":"FWL","version":1.8,"size":52.0},{"name":"Generic Hasher","ext":"HASH","version":1.9,"size":63.0},{"name":"Generic Hidder","ext":"HDR","version":1.5,"size":28.0},{"name":"Generic Seeker","ext":"SKR","version":1.6,"size":31.0}]},{"cat":"HIRER","ip":"218.2.199.187","name":"Ghost Freight","status":"UNKNOWN","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hidder","ext":"HDR","version":1.3,"size":23.0},{"name":"Basic Seeker","ext":"SKR","version":1.3,"size":23.0},{"name":"Generic Cracker","ext":"CRC","version":1.9,"size":69.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic Firewall","ext":"FWL","version":1.8,"size":52.0},{"name":"Generic Hasher","ext":"HASH","version":1.9,"size":63.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"HIRER","ip":"218.236.244.182","name":"Fail","status":"ONLINE","soft":[]},{"cat":"HIRER","ip":"22.94.188.183","name":"Microlost","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Cracker","ext":"CRC","version":1.1,"size":30.0},{"name":"Basic Firewall","ext":"FWL","version":1.0,"size":23.0},{"name":"Basic FTP Exploit","ext":"FTPEXP","version":1.2,"size":26.0},{"name":"Basic Hasher","ext":"HASH","version":1.2,"size":31.0},{"name":"Basic Port Scan","ext":"SCAN","version":1.0,"size":23.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.3,"size":28.0},{"name":"Basic Warez","ext":"VWAREZ","version":1.0,"size":14.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Spam","ext":"VSPAM","version":2.0,"size":36.0},{"name":"Decent Spam","ext":"VSPAM","version":2.0,"size":36.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0}]},{"cat":"COMPANY","ip":"223.193.247.151","name":"Bytelandia City Hall","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Firewall","ext":"FWL","version":2.0,"size":63.0},{"name":"Decent Hasher","ext":"HASH","version":2.1,"size":76.0},{"name":"Fotoshop CS6","ext":"TORRENT","version":3.0,"size":142.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.6,"size":360.0}]},{"cat":"HIRER","ip":"224.22.43.32","name":"Noplace","status":"UNKNOWN","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Coco Jamboo Zero-Day","ext":"VMINER","version":10.2,"size":1331.2},{"name":"Decent Cracker","ext":"CRC","version":2.7,"size":136.0},{"name":"Decent Firewall","ext":"FWL","version":2.4,"size":90.0},{"name":"Decent Hasher","ext":"HASH","version":2.8,"size":135.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"GetMining","ext":"VMINER","version":2.1,"size":45.0}]},{"cat":"HIRER","ip":"227.230.229.21","name":"Hell Computers","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Cracker","ext":"CRC","version":1.3,"size":37.0},{"name":"Basic Firewall","ext":"FWL","version":1.4,"size":35.0},{"name":"Basic Hidder","ext":"HDR","version":1.3,"size":23.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic Hasher","ext":"HASH","version":1.7,"size":52.0},{"name":"Generic Hidder","ext":"HDR","version":1.6,"size":31.0},{"name":"Generic Hidder","ext":"HDR","version":1.6,"size":31.0},{"name":"Generic Spam","ext":"VSPAM","version":1.5,"size":22.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"HIRER","ip":"233.100.28.123","name":"Stalker","status":"ONLINE","soft":[{"name":"0007","ext":"NFT","version":1.4,"size":21.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Firewall","ext":"FWL","version":1.0,"size":23.0},{"name":"Basic Port Scan","ext":"SCAN","version":1.0,"size":23.0},{"name":"Decent Cracker","ext":"CRC","version":2.0,"size":75.0},{"name":"Decent Hasher","ext":"HASH","version":2.2,"size":83.0},{"name":"Decent Warez","ext":"VWAREZ","version":2.1,"size":36.0},{"name":"Decent Warez","ext":"VWAREZ","version":2.0,"size":36.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic FTP Exploit","ext":"FTPEXP","version":1.6,"size":39.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0},{"name":"Generic SSH Exploit","ext":"SSHEXP","version":1.7,"size":43.0}]},{"cat":"HIRER","ip":"235.175.162.163","name":"elgooG","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.6,"size":288.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Firewall","ext":"FWL","version":1.3,"size":31.0},{"name":"Basic Hasher","ext":"HASH","version":1.4,"size":38.0},{"name":"Basic Nmap","ext":"NMAP","version":1.1,"size":18.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.1,"size":23.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic Cracker","ext":"CRC","version":1.7,"size":56.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic FTP Exploit","ext":"FTPEXP","version":1.5,"size":35.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0}]},{"cat":"BANK","ip":"235.230.236.185","name":"First International Bank","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Firewall","ext":"FWL","version":1.5,"size":39.0},{"name":"Generic Hasher","ext":"HASH","version":1.5,"size":42.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.6,"size":360.0}]},{"cat":"HIRER","ip":"239.106.128.178","name":"Hacker Inside","status":"ONLINE","soft":[]},{"cat":"SAFENET","ip":"24.251.216.81","name":"Safenet","status":"ONLINE","soft":[]},{"cat":"RIDDLE","ip":"242.143.191.166","name":"Gnirut","status":"ONLINE","soft":[]},{"cat":"RIDDLE","ip":"243.229.126.154","name":"PUZZLE1","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Cracker","ext":"CRC","version":2.4,"size":107.0},{"name":"Decent Firewall","ext":"FWL","version":2.2,"size":76.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.4,"size":82.0},{"name":"Decent Hasher","ext":"HASH","version":2.3,"size":91.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Spam","ext":"VSPAM","version":2.6,"size":61.0},{"name":"Decent SSH Exploit","ext":"SSHEXP","version":2.2,"size":69.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Intermediate Seeker","ext":"SKR","version":3.0,"size":101.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"COMPANY","ip":"245.211.233.233","name":"Z\u00e9's LAN House","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Advanced Warez","ext":"VWAREZ","version":5.6,"size":288.0},{"name":"Basic Anti-Virus","ext":"AV","version":1.0,"size":18.0},{"name":"Basic Firewall","ext":"FWL","version":1.0,"size":23.0},{"name":"Basic Hasher","ext":"HASH","version":1.4,"size":38.0},{"name":"Basic Spam","ext":"VSPAM","version":1.0,"size":14.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Fotoshop CS6","ext":"TORRENT","version":3.0,"size":142.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"GetMining","ext":"VMINER","version":2.1,"size":45.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0}]},{"cat":"RIDDLE","ip":"245.82.142.69","name":"2","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.6,"size":288.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Cracker","ext":"CRC","version":1.2,"size":34.0},{"name":"Basic Firewall","ext":"FWL","version":1.0,"size":23.0},{"name":"Basic Hasher","ext":"HASH","version":1.1,"size":28.0},{"name":"Basic Seeker","ext":"SKR","version":1.2,"size":20.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.0,"size":21.0},{"name":"Basic Warez","ext":"VWAREZ","version":1.0,"size":14.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"F.L.I.E.N.D.S","ext":"TORRENT","version":1.0,"size":23.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"heartbleed","ext":"VSPAM","version":1.0,"size":4.0}]},{"cat":"RIDDLE","ip":"247.145.230.151","name":"PUZZLE1","status":"ONLINE","soft":[{"name":"Advanced Collector","ext":"VCOL","version":5.0,"size":275.0},{"name":"Advanced Cracker","ext":"CRC","version":5.0,"size":491.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Competent Hasher","ext":"HASH","version":4.8,"size":415.0},{"name":"Competent Hidder","ext":"HDR","version":4.4,"size":225.0},{"name":"Competent Miner","ext":"VMINER","version":4.0,"size":258.0},{"name":"Competent Seeker","ext":"SKR","version":4.0,"size":185.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Intermediate Firewall","ext":"FWL","version":3.6,"size":207.0},{"name":"Intermediate FTP Exploit","ext":"FTPEXP","version":3.0,"size":128.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0},{"name":"Intermediate SSH Exploit","ext":"SSHEXP","version":3.0,"size":128.0}]},{"cat":"RIDDLE","ip":"248.242.184.63","name":"Hangman","status":"ONLINE","soft":[]},{"cat":"RIDDLE","ip":"252.151.17.186","name":"8","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.6,"size":288.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic FTP Exploit","ext":"FTPEXP","version":1.0,"size":21.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Basic Seeker","ext":"SKR","version":1.3,"size":23.0},{"name":"Basic Spam","ext":"VSPAM","version":1.4,"size":20.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.3,"size":28.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic Cracker","ext":"CRC","version":1.8,"size":62.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Firewall","ext":"FWL","version":1.6,"size":43.0},{"name":"Generic Hasher","ext":"HASH","version":1.7,"size":52.0},{"name":"Generic Hidder","ext":"HDR","version":1.7,"size":34.0},{"name":"Intermediate Anti-Virus","ext":"AV","version":3.4,"size":140.0}]},{"cat":"COMPANY","ip":"252.206.184.40","name":"Pirate Radio 1337 FM","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Basic Spam","ext":"VSPAM","version":1.0,"size":14.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0}]},{"cat":"HIRER","ip":"254.88.174.45","name":"iFome","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Advanced Warez","ext":"VWAREZ","version":5.0,"size":236.0},{"name":"Basic Cracker","ext":"CRC","version":1.2,"size":34.0},{"name":"Basic Firewall","ext":"FWL","version":1.1,"size":26.0},{"name":"Basic Hasher","ext":"HASH","version":1.2,"size":31.0},{"name":"Basic Spam","ext":"VSPAM","version":1.1,"size":15.0},{"name":"Fotoshop CS6","ext":"TORRENT","version":3.0,"size":142.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.7,"size":374.0}]},{"cat":"RIDDLE","ip":"27.208.88.234","name":"PUZZLE1","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.6,"size":288.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Anti-Virus","ext":"AV","version":1.4,"size":27.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.3,"size":28.0},{"name":"Decent Collector","ext":"VCOL","version":2.0,"size":42.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Seeker","ext":"SKR","version":2.0,"size":45.0},{"name":"Generic Cracker","ext":"CRC","version":1.9,"size":69.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic Firewall","ext":"FWL","version":1.8,"size":52.0},{"name":"Generic FTP Exploit","ext":"FTPEXP","version":1.7,"size":43.0},{"name":"Generic Hasher","ext":"HASH","version":1.8,"size":57.0},{"name":"Generic Spam","ext":"VSPAM","version":1.7,"size":27.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0}]},{"cat":"FIXER","ip":"28.220.145.179","name":"Grey Crow","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0},{"name":"Intermediate Firewall","ext":"FWL","version":3.0,"size":142.0},{"name":"Intermediate Hasher","ext":"HASH","version":3.0,"size":155.0}]},{"cat":"RIDDLE","ip":"30.168.171.54","name":"4","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Advanced Warez","ext":"VWAREZ","version":5.6,"size":288.0},{"name":"Basic Cracker","ext":"CRC","version":1.4,"size":41.0},{"name":"Basic Firewall","ext":"FWL","version":1.2,"size":28.0},{"name":"Basic Hasher","ext":"HASH","version":1.3,"size":34.0},{"name":"Basic Hidder","ext":"HDR","version":1.4,"size":25.0},{"name":"Basic Miner","ext":"VMINER","version":1.3,"size":31.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Basic Seeker","ext":"SKR","version":1.1,"size":18.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.1,"size":23.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Fotoshop CS6","ext":"TORRENT","version":3.0,"size":142.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0}]},{"cat":"HIRER","ip":"33.221.126.24","name":"Murder King","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Cracker","ext":"CRC","version":1.3,"size":37.0},{"name":"Basic Firewall","ext":"FWL","version":1.2,"size":28.0},{"name":"Basic FTP Exploit","ext":"FTPEXP","version":1.1,"size":23.0},{"name":"Basic Hasher","ext":"HASH","version":1.1,"size":28.0},{"name":"Basic Hidder","ext":"HDR","version":1.4,"size":25.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Basic Seeker","ext":"SKR","version":1.2,"size":20.0},{"name":"Basic Spam","ext":"VSPAM","version":1.2,"size":16.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Spam","ext":"VSPAM","version":2.0,"size":36.0},{"name":"Fotoshop CS6","ext":"TORRENT","version":3.0,"size":142.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"COMPANY","ip":"35.148.155.68","name":"Farofa Systems","status":"ONLINE","soft":[]},{"cat":"RIDDLE","ip":"38.252.53.203","name":"PUZZLE2","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Cracker","ext":"CRC","version":2.9,"size":157.0},{"name":"Decent Firewall","ext":"FWL","version":2.4,"size":90.0},{"name":"Decent Hasher","ext":"HASH","version":2.7,"size":125.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Decent Seeker","ext":"SKR","version":2.8,"size":88.0},{"name":"Decent SSH Exploit","ext":"SSHEXP","version":2.4,"size":82.0},{"name":"Generic FTP Exploit","ext":"FTPEXP","version":1.8,"size":47.0},{"name":"Intermediate Anti-Virus","ext":"AV","version":3.0,"size":108.0},{"name":"Intermediate Hidder","ext":"HDR","version":3.3,"size":123.0},{"name":"Intermediate Spam","ext":"VSPAM","version":3.0,"size":81.0}]},{"cat":"HIRER","ip":"39.110.39.229","name":"Nokids","status":"ONLINE","soft":[]},{"cat":"COMPANY","ip":"4.3.2.1","name":"Siohw","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.6,"size":288.0},{"name":"Decent Firewall","ext":"FWL","version":2.0,"size":63.0},{"name":"Decent Hasher","ext":"HASH","version":2.0,"size":69.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0}]},{"cat":"HIRER","ip":"42.177.189.21","name":"Life's Though","status":"ONLINE","soft":[]},{"cat":"HIRER","ip":"43.22.107.152","name":"McDiabetes","status":"ONLINE","soft":[{"name":"Advanced Anti-Virus","ext":"AV","version":5.9,"size":430.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Spam","ext":"VSPAM","version":1.1,"size":15.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic Cracker","ext":"CRC","version":1.9,"size":69.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Firewall","ext":"FWL","version":1.7,"size":47.0},{"name":"Generic Hasher","ext":"HASH","version":1.9,"size":63.0},{"name":"Generic Hasher","ext":"HASH","version":1.7,"size":52.0},{"name":"Intermediate Anti-Virus","ext":"AV","version":3.4,"size":140.0},{"name":"Intermediate Miner","ext":"VMINER","version":3.0,"size":142.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.6,"size":360.0}]},{"cat":"RIDDLE","ip":"44.27.219.17","name":"Too Many Secrets","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Cracker","ext":"CRC","version":2.2,"size":90.0},{"name":"Decent DDoS","ext":"VDDOS","version":2.0,"size":39.0},{"name":"Decent Firewall","ext":"FWL","version":2.0,"size":63.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.6,"size":96.0},{"name":"Decent Hasher","ext":"HASH","version":2.1,"size":76.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic Hidder","ext":"HDR","version":1.8,"size":38.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0},{"name":"Generic SSH Exploit","ext":"SSHEXP","version":1.9,"size":52.0},{"name":"Intermediate Anti-Virus","ext":"AV","version":3.4,"size":140.0},{"name":"vspam","ext":"VSPAM","version":5.2,"size":246.0}]},{"cat":"HIRER","ip":"49.87.107.158","name":"Ghost Jobs","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent FTP Exploit","ext":"FTPEXP","version":2.9,"size":120.0},{"name":"Decent Seeker","ext":"SKR","version":2.8,"size":88.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0},{"name":"Intermediate Cracker","ext":"CRC","version":3.4,"size":219.0},{"name":"Intermediate Firewall","ext":"FWL","version":3.3,"size":173.0},{"name":"Intermediate Hasher","ext":"HASH","version":3.4,"size":201.0}]},{"cat":"BANK","ip":"5.251.224.21","name":"False Bottom Bank","status":"ONLINE","soft":[]},{"cat":"BANK","ip":"68.52.170.187","name":"American Expense","status":"ONLINE","soft":[]},{"cat":"HIRER","ip":"74.120.233.218","name":"ZapZap Business","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Competent Cracker","ext":"CRC","version":4.5,"size":394.0},{"name":"Competent Firewall","ext":"FWL","version":4.0,"size":258.0},{"name":"Competent Hasher","ext":"HASH","version":4.5,"size":362.0},{"name":"Decent Hidder","ext":"HDR","version":2.8,"size":88.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"Generic Miner","ext":"VMINER","version":1.5,"size":39.0},{"name":"Intermediate Spam","ext":"VSPAM","version":3.5,"size":112.0}]},{"cat":"HIRER","ip":"8.248.97.190","name":"Or\u00e1culo Databases","status":"ONLINE","soft":[]},{"cat":"ISP","ip":"8.28.148.85","name":"ISP - Internet Service Provider","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Decent Firewall","ext":"FWL","version":2.0,"size":63.0},{"name":"Decent Hasher","ext":"HASH","version":2.0,"size":69.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"HIRER","ip":"81.75.200.164","name":"Insane","status":"ONLINE","soft":[{"name":"0010","ext":"NFT","version":3.0,"size":21.0},{"name":"Advanced Firewall","ext":"FWL","version":5.9,"size":585.0},{"name":"Advanced FTP Exploit","ext":"FTPEXP","version":6.3,"size":607.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Competent Cracker","ext":"CRC","version":4.0,"size":307.0},{"name":"Competent Warez","ext":"VWAREZ","version":4.2,"size":164.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Intermediate Hasher","ext":"HASH","version":3.6,"size":227.0},{"name":"Zero-day O2","ext":"VMINER","version":6.2,"size":448.0}]},{"cat":"RIDDLE","ip":"83.42.14.195","name":"3","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Breaker","ext":"VBRK","version":1.0,"size":16.0},{"name":"Basic Cracker","ext":"CRC","version":1.3,"size":37.0},{"name":"Basic DDoS","ext":"VDDOS","version":1.0,"size":15.0},{"name":"Basic Firewall","ext":"FWL","version":1.2,"size":28.0},{"name":"Basic FTP Exploit","ext":"FTPEXP","version":1.1,"size":23.0},{"name":"Basic Hasher","ext":"HASH","version":1.2,"size":31.0},{"name":"Basic Hidder","ext":"HDR","version":1.1,"size":18.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Basic Seeker","ext":"SKR","version":1.0,"size":17.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.0,"size":21.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Intermediate Anti-Virus","ext":"AV","version":3.4,"size":140.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.6,"size":360.0}]},{"cat":"BANK","ip":"88.213.201.226","name":"Ultimate Bank","status":"ONLINE","soft":[]},{"cat":"RIDDLE","ip":"9.25.173.250","name":"6","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Anti-Virus","ext":"AV","version":1.2,"size":22.0},{"name":"Basic Firewall","ext":"FWL","version":1.4,"size":35.0},{"name":"Basic FTP Exploit","ext":"FTPEXP","version":1.0,"size":21.0},{"name":"Basic Nmap","ext":"NMAP","version":1.1,"size":18.0},{"name":"Basic SSH Exploit","ext":"SSHEXP","version":1.4,"size":32.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic Cracker","ext":"CRC","version":1.6,"size":51.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic Hasher","ext":"HASH","version":1.5,"size":42.0},{"name":"Generic Hidder","ext":"HDR","version":1.5,"size":28.0},{"name":"Generic Seeker","ext":"SKR","version":1.5,"size":28.0},{"name":"Intermediate Anti-Virus","ext":"AV","version":3.4,"size":140.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.6,"size":360.0}]},{"cat":"HIRER","ip":"98.101.94.30","name":"Broke","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Hasher","ext":"HASH","version":1.0,"size":26.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Basic Nmap","ext":"NMAP","version":1.1,"size":18.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.5,"size":24.0},{"name":"heartbleed","ext":"VSPAM","version":1.0,"size":4.0},{"name":"heartbleed","ext":"VSPAM","version":1.0,"size":4.0},{"name":"Zero-Day Light","ext":"VMINER","version":5.7,"size":374.0}]},{"cat":"RIDDLE","ip":"99.162.128.20","name":"Hacker News","status":"ONLINE","soft":[{"name":"Advanced Spam","ext":"VSPAM","version":5.6,"size":288.0},{"name":"Advanced Spam","ext":"VSPAM","version":5.0,"size":236.0},{"name":"Basic Analyzer","ext":"ANA","version":1.0,"size":23.0},{"name":"Basic Firewall","ext":"FWL","version":1.4,"size":35.0},{"name":"Basic Hasher","ext":"HASH","version":1.4,"size":38.0},{"name":"Basic Hidder","ext":"HDR","version":1.3,"size":23.0},{"name":"Basic Miner","ext":"VMINER","version":1.3,"size":31.0},{"name":"Basic Nmap","ext":"NMAP","version":2.4,"size":63.0},{"name":"Basic Nmap","ext":"NMAP","version":1.1,"size":18.0},{"name":"Basic Seeker","ext":"SKR","version":1.0,"size":17.0},{"name":"Decent Miner","ext":"VMINER","version":2.0,"size":63.0},{"name":"Generic Anti-Virus","ext":"AV","version":1.5,"size":30.0},{"name":"Generic Collector","ext":"VCOL","version":1.5,"size":26.0},{"name":"Generic Cracker","ext":"CRC","version":1.5,"size":46.0},{"name":"Generic DDoS","ext":"VDDOS","version":1.9,"size":33.0},{"name":"Generic FTP Exploit","ext":"FTPEXP","version":1.8,"size":47.0},{"name":"Generic Spam","ext":"VSPAM","version":1.5,"size":22.0}]}];
+const CAT_META = {"HIRER":{"short":"HIRE","color":"#00ccff"},"RIDDLE":{"short":"RDL","color":"#8844ff"},"COMPANY":{"short":"CO","color":"#ffcc55"},"BANK":{"short":"BANK","color":"#ff5555"},"WHOIS":{"short":"WHO","color":"#00ff88"},"TEMPORARY TARGET":{"short":"TEMP","color":"#ff8844"},"TORRENT MARKET":{"short":"TORR","color":"#ff4488"},"BITCOIN MARKET":{"short":"BTC","color":"#aa88ff"},"DOWNLOAD CENTER":{"short":"DL","color":"#f7931a"},"SAFENET":{"short":"SAFE","color":"#44ddff"},"FIXER":{"short":"FIX","color":"#55ff55"},"ISP":{"short":"ISP","color":"#88ccff"}};
+const SOFT_LABELS = {"VSPAM":"Spam","VMINER":"Miner","HASH":"Hasher","VDDOS":"DDoS","FWL":"Firewall","CRC":"Cracker","FTPEXP":"FTP Exploit","HDR":"Hidder","SSHEXP":"SSH Exploit","SKR":"Seeker","VWAREZ":"Warez","NMAP":"Nmap","AV":"Anti-Virus","TORRENT":"Torrent","ANA":"Analyzer","SCAN":"Port Scan","VCOL":"Collector","VBRK":"Breaker","DAT":"Wallet","NFT":"NFT","EXE":"Web Server"};
+const SOFT_META = {"VSPAM":{"color":"#4da6ff"},"VMINER":{"color":"#aa88ff"},"HASH":{"color":"#00ff88"},"VDDOS":{"color":"#ff5555"},"FWL":{"color":"#ffcc55"},"CRC":{"color":"#00ccff"},"FTPEXP":{"color":"#ff8844"},"HDR":{"color":"#88ccff"},"SSHEXP":{"color":"#55ff55"},"SKR":{"color":"#f7931a"},"VWAREZ":{"color":"#ff4488"},"NMAP":{"color":"#cccccc"},"AV":{"color":"#77ffaa"},"TORRENT":{"color":"#ff77aa"},"ANA":{"color":"#8844ff"},"SCAN":{"color":"#44ddff"},"VCOL":{"color":"#e8f0fe"},"VBRK":{"color":"#a0b4cc"},"NFT":{"color":"#ffd166"}};
+const CODE_ALIASES = {"spam":"VSPAM","miner":"VMINER","hasher":"HASH","ddos":"VDDOS","firewall":"FWL","cracker":"CRC","ftpexploit":"FTPEXP","hidder":"HDR","sshexploit":"SSHEXP","seeker":"SKR","warez":"VWAREZ","nmap":"NMAP","antivirus":"AV","torrent":"TORRENT","analyzer":"ANA","portscan":"SCAN","collector":"VCOL","breaker":"VBRK","wallet":"DAT","nft":"NFT","webserver":"EXE","ftp":"FTPEXP","ssh":"SSHEXP","col":"VCOL","brk":"VBRK","av":"AV","scan":"SCAN","portscanner":"SCAN","exploit":"FTPEXP"};
+
+const grid = document.getElementById('grid');
+const searchInput = document.getElementById('search');
+const clearBtn = document.getElementById('clearBtn');
+const emptyState = document.getElementById('emptyState');
+const hitCountEl = document.getElementById('hitCount');
+const totalCountEl = document.getElementById('totalCount');
+const softHintEl = document.getElementById('softHint');
+const catFilters = document.getElementById('catFilters');
+const softFilters = document.getElementById('softFilters');
+const copyIpsBtn = document.getElementById('copyIpsBtn');
+const downloadListBtn = document.getElementById('downloadListBtn');
+let currentResults = [];
+
+totalCountEl.textContent = RECORDS.length;
+
+let activeCat = null;
+Object.keys(CAT_META).forEach(cat => {
+  const meta = CAT_META[cat];
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.textContent = meta.short + ' (' + RECORDS.filter(r=>r.cat===cat).length + ')';
+  chip.style.color = meta.color;
+  chip.dataset.cat = cat;
+  chip.addEventListener('click', () => {
+    if(activeCat === cat){
+      activeCat = null;
+      chip.classList.remove('active'); chip.style.background=''; chip.style.color=meta.color;
+    } else {
+      document.querySelectorAll('#catFilters .chip').forEach(c=>{c.classList.remove('active'); c.style.background='';});
+      Object.keys(CAT_META).forEach(k=>{
+        const el = catFilters.querySelector('[data-cat="'+k+'"]');
+        if(el) el.style.color = CAT_META[k].color;
+      });
+      activeCat = cat;
+      chip.classList.add('active');
+      chip.style.background = meta.color;
+      chip.style.color = '#04170c';
+    }
+    render();
+  });
+  catFilters.appendChild(chip);
+});
+
+let activeSoft = null;
+Object.keys(SOFT_META).forEach(ext => {
+  const meta = SOFT_META[ext];
+  const label = SOFT_LABELS[ext] || ext;
+  const count = RECORDS.filter(r => (r.soft||[]).some(s=>s.ext===ext)).length;
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.textContent = ext + ' (' + count + ')';
+  chip.title = label;
+  chip.style.color = meta.color;
+  chip.dataset.soft = ext;
+  chip.addEventListener('click', () => {
+    if(activeSoft === ext){
+      activeSoft = null;
+      chip.classList.remove('active'); chip.style.background=''; chip.style.color=meta.color;
+    } else {
+      document.querySelectorAll('#softFilters .chip').forEach(c=>{c.classList.remove('active'); c.style.background='';});
+      Object.keys(SOFT_META).forEach(k=>{
+        const el = softFilters.querySelector('[data-soft="'+k+'"]');
+        if(el) el.style.color = SOFT_META[k].color;
+      });
+      activeSoft = ext;
+      chip.classList.add('active');
+      chip.style.background = meta.color;
+      chip.style.color = '#04170c';
+    }
+    render();
+  });
+  softFilters.appendChild(chip);
+});
+
+function fmtSize(mb){
+  if(mb == null) return '';
+  if(mb >= 1024) return (mb/1024).toFixed(1)+'GB';
+  return Math.round(mb)+'MB';
+}
+function fmtVer(v){
+  if(v == null) return '—';
+  return 'v'+v;
+}
+function resolveSortCode(term){
+  const up = term.toUpperCase();
+  if(SOFT_LABELS.hasOwnProperty(up)) return up;
+  if(CODE_ALIASES.hasOwnProperty(term)) return CODE_ALIASES[term];
+  return 'CRC';
+}
+function bestVersion(rec, ext){
+  let best = null;
+  (rec.soft||[]).forEach(s => {
+    if(s.ext === ext && typeof s.version === 'number'){
+      if(best === null || s.version > best) best = s.version;
+    }
+  });
+  return best;
+}
+function escapeHTML(s){
+  if(s==null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function cardHTML(rec, term){
+  const meta = CAT_META[rec.cat] || {short:'?',color:'#888'};
+  const soft = rec.soft || [];
+  let softHTML = '';
+  if(soft.length === 0){
+    softHTML = '<div class="no-soft">no software seen</div>';
+  } else {
+    softHTML = soft.map(s => {
+      const lc = s.ext.toLowerCase();
+      const label = SOFT_LABELS[s.ext] || s.ext;
+      const color = (SOFT_META[s.ext]||{}).color || '#888';
+      const isMatch = term && (lc.includes(term) || label.toLowerCase().includes(term) || s.name.toLowerCase().includes(term));
+      return '<div class="soft-box'+(isMatch?' match':'')+'" title="'+escapeHTML(s.name)+' ('+escapeHTML(label)+')">'
+        + '<div class="code" style="color:'+color+'">'+s.ext+'</div>'
+        + '<div class="ver">'+fmtVer(s.version)+'</div>'
+        + '<div class="sz">'+fmtSize(s.size)+'</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  const isOnline = rec.status === 'ONLINE';
+  const displayName = rec.name ? rec.name : '(unnamed target)';
+
+  return '<div class="card" data-cat="'+escapeHTML(rec.cat)+'" style="--card-accent:'+meta.color+'">'
+    + '<div class="card-head">'
+      + '<div class="card-head-l">'
+        + '<div class="cat-badge" style="color:'+meta.color+'">'+meta.short+'</div>'
+        + '<div class="npc-name">'+escapeHTML(displayName)+'</div>'
+      + '</div>'
+      + '<div style="text-align:right">'
+        + '<div class="ip-pill" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+rec.ip+'\')" title="click to copy">'+rec.ip+'</div>'
+        + '<div class="status-badge '+(isOnline?'on':'off')+'">'+escapeHTML(rec.status)+'</div>'
+      + '</div>'
+    + '</div>'
+    + '<div class="soft-grid">'+softHTML+'</div>'
+    + '</div>';
+}
+
+function matches(rec, term){
+  if(activeCat && rec.cat !== activeCat) return false;
+  if(activeSoft && !(rec.soft||[]).some(s=>s.ext===activeSoft)) return false;
+  if(!term) return true;
+  const soft = rec.soft || [];
+  const hay = [
+    rec.name, rec.ip, rec.cat, rec.status,
+    ...soft.map(s=>s.ext), ...soft.map(s=>s.name), ...soft.map(s=>SOFT_LABELS[s.ext]||'')
+  ].join(' ').toLowerCase();
+  return hay.includes(term);
+}
+
+function render(){
+  const raw = searchInput.value.trim().toLowerCase();
+  clearBtn.style.display = raw ? 'inline-block' : 'none';
+  let results = RECORDS.filter(r => matches(r, raw));
+
+  if(raw){
+    const sortCode = resolveSortCode(raw);
+    results = results.slice().sort((a,b) => {
+      const av = bestVersion(a, sortCode);
+      const bv = bestVersion(b, sortCode);
+      if(av == null && bv == null) return 0;
+      if(av == null) return 1;
+      if(bv == null) return -1;
+      return bv - av;
+    });
+  }
+
+  hitCountEl.textContent = results.length;
+  currentResults = results;
+
+  if(raw && SOFT_LABELS[raw.toUpperCase()]){
+    softHintEl.textContent = '• matches highlighted for "'+raw+'" ('+SOFT_LABELS[raw.toUpperCase()]+')';
+  } else {
+    softHintEl.textContent = '';
+  }
+
+  if(results.length === 0){
+    grid.style.display = 'none';
+    emptyState.style.display = 'block';
+    return;
+  }
+  grid.style.display = 'grid';
+  emptyState.style.display = 'none';
+  grid.innerHTML = results.map(r => cardHTML(r, raw)).join('');
+}
+
+searchInput.addEventListener('input', render);
+clearBtn.addEventListener('click', () => { searchInput.value=''; render(); searchInput.focus(); });
+
+copyIpsBtn.addEventListener('click', () => {
+  const ips = currentResults.map(r => r.ip).join('\n');
+  if(!ips) return;
+  const done = () => {
+    copyIpsBtn.classList.add('copied');
+    setTimeout(() => copyIpsBtn.classList.remove('copied'), 1100);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ips).then(done).catch(done);
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = ips; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+    done();
+  }
+});
+
+downloadListBtn.addEventListener('click', () => {
+  if(!currentResults.length) return;
+  const lines = currentResults.map(r => r.ip + ' - ' + (r.name || '(unnamed)') + ' [' + r.cat + ']');
+  const content = '# ZT Round 1 Targets\n' + lines.join('\n') + '\n';
+  const blob = new Blob([content], {type:'text/markdown'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'zt-round-1-targets.md';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  downloadListBtn.classList.add('copied');
+  setTimeout(() => downloadListBtn.classList.remove('copied'), 1100);
+});
+
+render();
+</script>
+</body>
+</html>
