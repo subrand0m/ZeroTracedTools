@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZT Log Parser</title>
+<style>
+  :root{
+    --bg:#0a0e17; --surface:#0d1220; --surface2:#111a2e; --border:#1a2744;
+    --text:#e8f0fe; --dim:#8fa4bf; --accent:#00ff88; --cyan:#00ccff; --purple:#8844ff; --red:#ff4d6d;
+    --mono:'JetBrains Mono','Consolas','Courier New',monospace; --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--bg); color:var(--text);
+    font-family:var(--sans); display:flex; align-items:flex-start; justify-content:center; padding:32px 16px;
+  }
+  .card{
+    width:100%; max-width:960px;
+    background:linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+    border:1px solid var(--border); border-radius:16px; padding:32px;
+    box-shadow:0 8px 32px rgba(0,0,0,.5), 0 0 100px rgba(0,255,136,.04);
+  }
+  .accent-bar{height:3px; margin:-32px -32px 24px; background:linear-gradient(90deg,var(--accent),var(--cyan),var(--purple));}
+  h1{font-family:var(--mono); font-size:18px; letter-spacing:1px; margin:0 0 6px;}
+  p.sub{color:var(--dim); font-size:13px; margin:0 0 24px; font-family:var(--mono);}
+  h2{font-family:var(--mono); font-size:13px; letter-spacing:1px; margin:26px 0 10px; color:var(--cyan);}
+
+  .grid{display:grid; gap:14px;}
+  .grid.in{grid-template-columns:7fr 3fr;}
+  .grid.out{grid-template-columns:repeat(3,1fr);}
+  @media (max-width:720px){ .grid.in, .grid.out{grid-template-columns:1fr;} .card{padding:24px 18px;} .accent-bar{margin:-24px -18px 20px;} }
+
+  .field{display:flex; flex-direction:column; gap:6px; min-width:0;}
+  .head{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  label{font-size:12px; font-family:var(--mono); color:var(--dim); letter-spacing:.5px;}
+  label .n{color:var(--accent);}
+  textarea{
+    font-family:var(--mono); font-size:12px; line-height:1.5;
+    background:var(--surface2); color:var(--text);
+    border:1px solid var(--border); border-radius:8px; padding:.6rem .7rem;
+    width:100%; min-height:260px; resize:vertical; white-space:pre; overflow:auto;
+  }
+  .out textarea{min-height:200px;}
+  textarea::placeholder{color:#4a5d7a;}
+  textarea:focus-visible, button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  button{
+    font-family:var(--mono); font-size:12px; cursor:pointer;
+    border-radius:8px; padding:.55rem 1rem; border:1px solid var(--border);
+    background:rgba(255,255,255,.03); color:var(--text); transition:border-color .15s, color .15s;
+  }
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button.mini{padding:.2rem .55rem; font-size:11px;}
+  button.go{border-color:rgba(0,255,136,.4); color:var(--accent);}
+  button.bad:hover{border-color:var(--red); color:var(--red);}
+
+  .bar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:16px;}
+  .bar .spacer{flex:1;}
+  .toast{font-family:var(--mono); font-size:11px; color:var(--accent); min-height:1em;}
+
+  p.note{color:var(--dim); font-size:11px; margin:18px 0 0; font-family:var(--mono); line-height:1.6;}
+  a{color:var(--accent);}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="accent-bar"></div>
+    <h1>&gt;_ Log Parser</h1>
+    <p class="sub">// paste server logs, pull out every IP, bank account &amp; wallet</p>
+
+    <div class="grid in">
+      <div class="field">
+        <label for="input-log">Logs</label>
+        <textarea id="input-log" spellcheck="false" autocomplete="off"
+                  placeholder="Paste one or more logs here&hellip;"></textarea>
+      </div>
+      <div class="field">
+        <label for="exclude-log">Exclude <span class="n" id="n-ex">(0)</span></label>
+        <textarea id="exclude-log" spellcheck="false" autocomplete="off"
+                  placeholder="Your own IPs, already-hacked IPs, accounts&hellip;"></textarea>
+      </div>
+    </div>
+
+    <h2>Results</h2>
+    <div class="grid out" aria-live="polite">
+      <div class="field">
+        <div class="head">
+          <label for="out-ip">IP addresses <span class="n" id="n-ip">(0)</span></label>
+          <button type="button" class="mini" data-copy="out-ip">Copy</button>
+        </div>
+        <textarea id="out-ip" readonly spellcheck="false"></textarea>
+      </div>
+      <div class="field">
+        <div class="head">
+          <label for="out-bank">Bank accounts <span class="n" id="n-bank">(0)</span></label>
+          <button type="button" class="mini" data-copy="out-bank">Copy</button>
+        </div>
+        <textarea id="out-bank" readonly spellcheck="false"></textarea>
+      </div>
+      <div class="field">
+        <div class="head">
+          <label for="out-btc">BTC wallets + keys <span class="n" id="n-btc">(0)</span></label>
+          <button type="button" class="mini" data-copy="out-btc">Copy</button>
+        </div>
+        <textarea id="out-btc" readonly spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <div class="bar">
+      <button type="button" class="go" id="save">Save as .txt</button>
+      <button type="button" class="bad" id="clear">Clear logs</button>
+      <span class="spacer"></span>
+      <span class="toast" id="toast" role="status"></span>
+    </div>
+
+    <p class="note">
+      Results update as you type, duplicates removed, in first-seen order. Anything in the Exclude box
+      (one per line, or separated by spaces/commas) is dropped from all three lists. Your logs and
+      exclude list are kept in this browser only. BTC wallets are listed as
+      <code>address key</code> when the log shows the key.<br>
+      <a href="./index.html">&larr; back</a>
+    </p>
+  </div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const inEl = $('input-log'), exEl = $('exclude-log');
+  const STORE = 'zt-log-parser';
+
+  // IPv4 with every octet 0-255, not glued to other digits/dots.
+  const IP_RE = /(?<![\d.])(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?![\d.])/g;
+  // Bank accounts: any number written as "account #N" / "acc N", plus any standalone 9-digit number.
+  const ACC_TAGGED_RE = /\bacc(?:ount)?\s*(?:#|no\.?|number)?\s*:?\s*#?(\d{4,12})\b/gi;
+  const ACC_BARE_RE = /(?<![\d.\-:])\d{9}(?![\d.\-:])/g;
+  // BTC: in-game addresses aren't strict base58 (they can contain l, I, O, 0), so match
+  // anything written after "address", plus any bare 26-35 char token starting with 1 or 3.
+  // The optional "using key <key>" that follows an address is captured alongside it.
+  const BTC_TAGGED_RE = /\baddress\s*:?\s*([A-Za-z0-9]{20,64})\b(?:\s+using\s+key\s*:?\s*([A-Za-z0-9]+))?/gi;
+  const BTC_BARE_RE = /\b[13][A-Za-z0-9]{25,34}\b/g;
+
+  const uniq = (arr, skip) => {
+    const seen = new Set(), out = [];
+    for (const v of arr) {
+      if (seen.has(v) || skip.has(v)) continue;
+      seen.add(v); out.push(v);
+    }
+    return out;
+  };
+
+  function parse() {
+    const text = inEl.value;
+    const skip = new Set(exEl.value.split(/[\s,;]+/).map(s => s.trim()).filter(Boolean));
+
+    const ips = uniq(text.match(IP_RE) || [], skip);
+
+    const accRaw = [];
+    for (const m of text.matchAll(ACC_TAGGED_RE)) accRaw.push(m[1]);
+    for (const m of text.matchAll(ACC_BARE_RE)) accRaw.push(m[0]);
+    const banks = uniq(accRaw, skip);
+
+    // address -> key (first key seen wins; a keyless sighting never erases one).
+    const wallets = new Map();
+    const addWallet = (addr, key) => {
+      if (skip.has(addr) || (key && skip.has(key))) return;
+      if (!wallets.has(addr)) wallets.set(addr, key || '');
+      else if (key && !wallets.get(addr)) wallets.set(addr, key);
+    };
+    for (const m of text.matchAll(BTC_TAGGED_RE)) addWallet(m[1], m[2]);
+    for (const m of text.matchAll(BTC_BARE_RE)) addWallet(m[0], '');
+    const btc = [...wallets].map(([a, k]) => k ? a + ' ' + k : a);
+
+    $('out-ip').value = ips.join('\n');
+    $('out-bank').value = banks.join('\n');
+    $('out-btc').value = btc.join('\n');
+    $('n-ip').textContent = '(' + ips.length + ')';
+    $('n-bank').textContent = '(' + banks.length + ')';
+    $('n-btc').textContent = '(' + btc.length + ')';
+    $('n-ex').textContent = '(' + skip.size + ')';
+
+    try { localStorage.setItem(STORE, JSON.stringify({ log: inEl.value, ex: exEl.value })); } catch (e) {}
+    return { ips, banks, btc };
+  }
+
+  let toastT;
+  function toast(msg) {
+    $('toast').textContent = msg;
+    clearTimeout(toastT);
+    toastT = setTimeout(() => { $('toast').textContent = ''; }, 2200);
+  }
+
+  async function copy(id) {
+    const v = $(id).value;
+    if (!v) return toast('Nothing to copy');
+    try { await navigator.clipboard.writeText(v); }
+    catch (e) { $(id).select(); document.execCommand('copy'); }
+    toast('Copied ' + v.split('\n').length + ' line(s)');
+  }
+
+  function save() {
+    const { ips, banks, btc } = parse();
+    if (!ips.length && !banks.length && !btc.length) return toast('Nothing to save');
+    const block = (title, list) => '== ' + title + ' (' + list.length + ') ==\n' + (list.join('\n') || '-') + '\n';
+    const body = block('IP Addresses', ips) + '\n' + block('Bank Accounts', banks) + '\n' + block('BTC Wallets (address key)', btc);
+    const url = URL.createObjectURL(new Blob([body], { type: 'text/plain' }));
+    const a = document.createElement('a');
+    const d = new Date(), p = n => String(n).padStart(2, '0');
+    a.href = url;
+    a.download = 'Log Parser Results ' + d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '.txt';
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast('Saved');
+  }
+
+  inEl.addEventListener('input', parse);
+  exEl.addEventListener('input', parse);
+  document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => copy(b.dataset.copy)));
+  $('save').addEventListener('click', save);
+  $('clear').addEventListener('click', () => { inEl.value = ''; parse(); inEl.focus(); toast('Logs cleared'); });
+
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE) || 'null');
+    if (s) { inEl.value = s.log || ''; exEl.value = s.ex || ''; }
+  } catch (e) {}
+
+  parse();
+})();
+</script>
+</body>
+</html>
