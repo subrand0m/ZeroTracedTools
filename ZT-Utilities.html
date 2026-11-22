@@ -59,7 +59,11 @@
   .bar .spacer{flex:1;}
   .toast{font-family:var(--mono); font-size:11px; color:var(--accent); min-height:1em;}
 
-  p.note{color:var(--dim); font-size:11px; margin:18px 0 0; font-family:var(--mono); line-height:1.6;}
+  ul.tips{list-style:none; margin:28px 0 0; padding:18px 0 0; border-top:1px solid var(--border);
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    color:var(--dim); font-size:11px; font-family:var(--mono); text-align:center;}
+  ul.tips code{color:var(--cyan);}
+  p.note{color:var(--dim); font-size:11px; margin:16px 0 0; font-family:var(--mono); text-align:center;}
   a{color:var(--accent);}
 </style>
 </head>
@@ -113,13 +117,13 @@
       <span class="toast" id="toast" role="status"></span>
     </div>
 
-    <p class="note">
-      Results update as you type, duplicates removed, in first-seen order. Anything in the Exclude box
-      (one per line, or separated by spaces/commas) is dropped from all three lists. Your logs and
-      exclude list are kept in this browser only. BTC wallets are listed as
-      <code>address key</code> when the log shows the key.<br>
-      <a href="./index.html">&larr; back</a>
-    </p>
+    <ul class="tips">
+      <li>Results update as you type, duplicates removed</li>
+      <li>Exclude: one per line, removed from every list</li>
+      <li>Wallets show as <code>address key</code></li>
+      <li>Everything stays in this browser only</li>
+    </ul>
+    <p class="note"><a href="./index.html">&larr; back</a></p>
   </div>
 
 <script>
